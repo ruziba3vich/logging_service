@@ -1,0 +1,3 @@
+[submodule "protos/logging_protos"]
+	path = protos/logging_protos
+	url = https://github.com/ruziba3vich/logging_protos.git
