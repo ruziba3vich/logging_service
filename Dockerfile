@@ -15,6 +15,6 @@ WORKDIR /root/
 
 COPY --from=build /app/main .
 
-EXPOSE 7777
+EXPOSE 7770
 
 CMD ["./main"]
