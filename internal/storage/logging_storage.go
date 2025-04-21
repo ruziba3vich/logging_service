@@ -10,21 +10,32 @@ import (
 )
 
 type LoggingStorage struct {
-	db *sql.DB
+	db          *sql.DB
+	insertQuery string
 }
 
-func NewLoggingStorage(db *sql.DB) *LoggingStorage {
-	return &LoggingStorage{db: db}
+func NewLoggingStorage(db *sql.DB, insertQuery string) *LoggingStorage {
+	return &LoggingStorage{db: db, insertQuery: insertQuery}
 }
 
 func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) {
-	query := `INSERT INTO logs (message, event_time) VALUES (?, ?)`
+	_, err := s.db.ExecContext(ctx, s.insertQuery,
+		l.Message,
+		l.EventTime.AsTime(),
+		l.Level,
+		l.Service,
+	)
 
-	_, err := s.db.ExecContext(ctx, query, l.Message, l.EventTime.AsTime())
 	if err != nil {
-		log.Printf("Failed to store log: %v. Trying to log this error.", err)
-		errorMsg := "Failed to store log: " + err.Error()
-		_, innerErr := s.db.ExecContext(ctx, query, errorMsg, time.Now())
+		log.Printf("Failed to store log: %v. Attempting to log the error internally.", err)
+
+		_, innerErr := s.db.ExecContext(ctx, s.insertQuery,
+			"Failed to store log: "+err.Error(),
+			time.Now(),
+			"ERROR",
+			"LoggingService",
+		)
+
 		if innerErr != nil {
 			log.Printf("Failed to store internal error log too: %v", innerErr)
 		}
