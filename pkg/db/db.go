@@ -38,7 +38,7 @@ func ConnectAndMigrate(cfg config.DbConfig) (*sql.DB, error) {
 }
 
 func migrate(db *sql.DB) error {
-	migrationBytes, err := os.ReadFile("migrations/init.sql")
+	migrationBytes, err := os.ReadFile("pkg/db/migrations/001_create_logs_table.sql")
 	if err != nil {
 		return fmt.Errorf("failed to read migration file: %s", err.Error())
 	}
