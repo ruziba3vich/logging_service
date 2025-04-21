@@ -1,4 +1,5 @@
-FROM golang:1.24.2 AS build
+FROM golang:1.24.2-alpine AS build
+RUN apk update && apk add --no-cache gcc musl-dev librdkafka-dev
 
 WORKDIR /app
 
@@ -7,11 +8,12 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/main.go
-
+RUN CGO_ENABLED=1 GOOS=linux go build -a -o main ./cmd/main.go
 FROM alpine:latest
 
-WORKDIR /root/
+RUN apk update && apk add --no-cache librdkafka
+
+WORKDIR /app
 
 COPY --from=build /app/main .
 
