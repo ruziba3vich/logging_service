@@ -16,7 +16,7 @@ services:
       - ENABLE_AUTO_COMMIT=false
       - MAX_POOL_INTERVAL=300000
       - SESSION_TIME_OUT=30000
-      - GRPC_PORT=50051
+      - GRPC_PORT=7770
     ports:
       - "50051:50051"
     depends_on:
