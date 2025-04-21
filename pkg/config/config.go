@@ -9,6 +9,7 @@ type (
 	Config struct {
 		DbCfg       *DbConfig
 		ConsumerCfg *ConsumerConfig
+		GRPCPort    string
 	}
 
 	DbConfig struct {
@@ -48,6 +49,7 @@ func New() *Config {
 			MaxPoolInterval:  getEnvInt("MAX_POOL_INTERVAL", 300000),
 			SessionTimeOut:   getEnvInt("SESSION_TIME_OUT", 30000),
 		},
+		GRPCPort: getEnv("GRPC_PORT", "7770"),
 	}
 }
 
