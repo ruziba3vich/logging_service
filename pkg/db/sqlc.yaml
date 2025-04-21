@@ -1,0 +1,12 @@
+version: "2"
+sql:
+  - engine: "clickhouse"
+    queries: "db/queries"
+    schema: "db/migrations"
+    gen:
+      go:
+        package: "db"
+        out: "db/gen"
+        emit_json_tags: true
+        emit_empty_slices: true
+        emit_interface: false
