@@ -1,8 +1,8 @@
 version: "2"
 sql:
   - engine: "clickhouse"
-    queries: "db/queries"
-    schema: "db/migrations"
+    queries: "pkg/db/queries"
+    schema: "pkg/db/migrations"
     gen:
       go:
         package: "db"
