@@ -3,8 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"log"
-	"time"
+	"fmt"
 
 	"github.com/ruziba3vich/logging_service/genprotos/genprotos/logging_service"
 )
@@ -18,7 +17,8 @@ func NewLoggingStorage(db *sql.DB, insertQuery string) *LoggingStorage {
 	return &LoggingStorage{db: db, insertQuery: insertQuery}
 }
 
-func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) {
+// query := `INSERT INTO logs (message, event_time, level, service) VALUES (?, ?, ?, ?)`
+func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) error {
 	_, err := s.db.ExecContext(ctx, s.insertQuery,
 		l.Message,
 		l.EventTime.AsTime(),
@@ -27,17 +27,7 @@ func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) {
 	)
 
 	if err != nil {
-		log.Printf("Failed to store log: %v. Attempting to log the error internally.", err)
-
-		_, innerErr := s.db.ExecContext(ctx, s.insertQuery,
-			"Failed to store log: "+err.Error(),
-			time.Now(),
-			"ERROR",
-			"LoggingService",
-		)
-
-		if innerErr != nil {
-			log.Printf("Failed to store internal error log too: %v", innerErr)
-		}
+		return fmt.Errorf("failed to store log: %s", err.Error())
 	}
+	return nil
 }
