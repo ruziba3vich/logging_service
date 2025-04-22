@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -13,6 +12,7 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 
 	"github.com/ruziba3vich/logging_service/genprotos/genprotos/logging_service"
 	"github.com/ruziba3vich/logging_service/internal/consumer"
@@ -49,7 +49,7 @@ func newGrpcServer(loggingService *service.LoggingService) *grpc.Server {
 func registerHooks(
 	lc fx.Lifecycle,
 	logConsumer *consumer.LogConsumer,
-	db *sql.DB,
+	db *gorm.DB,
 	grpcServer *grpc.Server,
 	cfg *config.Config,
 ) {
@@ -87,8 +87,12 @@ func registerHooks(
 			logConsumer.Stop()
 
 			grpcServer.GracefulStop()
-
-			if err := db.Close(); err != nil {
+			sqlDB, err := db.DB()
+			if err != nil {
+				log.Printf("Error getting raw db connection: %v", err)
+				return err
+			}
+			if err := sqlDB.Close(); err != nil {
 				log.Printf("Error closing database connection: %v", err)
 			}
 

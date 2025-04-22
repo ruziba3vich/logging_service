@@ -9,12 +9,11 @@ import (
 )
 
 type LoggingStorage struct {
-	db          *gorm.DB
-	insertQuery string
+	db *gorm.DB
 }
 
-func NewLoggingStorage(db *gorm.DB, insertQuery string) *LoggingStorage {
-	return &LoggingStorage{db: db, insertQuery: insertQuery}
+func NewLoggingStorage(db *gorm.DB) *LoggingStorage {
+	return &LoggingStorage{db: db}
 }
 
 // query := `INSERT INTO logs (message, event_time, level, service) VALUES (?, ?, ?, ?)`
