@@ -1,16 +1,14 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
-	"os"
 
-	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ruziba3vich/logging_service/pkg/config"
+	"gorm.io/driver/clickhouse"
+	"gorm.io/gorm"
 )
 
-func ConnectAndMigrate(cfg *config.Config) (*sql.DB, error) {
+func ConnectAndMigrate(cfg *config.Config) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("clickhouse://%s:%s@%s:%s/%s",
 		cfg.DbCfg.User,
 		cfg.DbCfg.Password,
@@ -19,34 +17,33 @@ func ConnectAndMigrate(cfg *config.Config) (*sql.DB, error) {
 		cfg.DbCfg.Database,
 	)
 
-	db, err := sql.Open("clickhouse", dsn)
+	db, err := gorm.Open(clickhouse.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open ClickHouse connection: %s", err.Error())
+		return nil, fmt.Errorf("failed to open ClickHouse connection: %w", err)
 	}
 
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping ClickHouse: %s", err.Error())
-	}
-
-	// Migrate database
 	if err := migrate(db); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to migrate: %w", err)
 	}
 
-	log.Println("Connected to ClickHouse and migration done")
 	return db, nil
 }
 
-func migrate(db *sql.DB) error {
-	migrationBytes, err := os.ReadFile("pkg/db/migrations/001_create_logs_table.sql")
-	if err != nil {
-		return fmt.Errorf("failed to read migration file: %s", err.Error())
-	}
+func migrate(db *gorm.DB) error {
+	rawSQL := `
+	CREATE TABLE IF NOT EXISTS logs (
+		id UUID DEFAULT generateUUIDv4(),
+		message String,
+		event_time DateTime,
+		level String,
+		service String,
+		received_at DateTime DEFAULT now()
+	) ENGINE = MergeTree
+	PARTITION BY toYYYYMM(event_time)
+	ORDER BY (event_time)
+	TTL event_time + INTERVAL 30 DAY
+	SETTINGS index_granularity = 8192;
+	`
 
-	_, err = db.Exec(string(migrationBytes))
-	if err != nil {
-		return fmt.Errorf("failed to execute migration: %s", err.Error())
-	}
-
-	return nil
+	return db.Exec(rawSQL).Error
 }
