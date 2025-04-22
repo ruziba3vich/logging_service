@@ -20,7 +20,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LoggingService_SendLog_FullMethodName = "/logging.LoggingService/SendLog"
+	LoggingService_SendLog_FullMethodName            = "/logging.LoggingService/SendLog"
+	LoggingService_GetLastNLogs_FullMethodName       = "/logging.LoggingService/GetLastNLogs"
+	LoggingService_GetLogsInTimeRange_FullMethodName = "/logging.LoggingService/GetLogsInTimeRange"
 )
 
 // LoggingServiceClient is the client API for LoggingService service.
@@ -28,6 +30,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LoggingServiceClient interface {
 	SendLog(ctx context.Context, in *Log, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetLastNLogs(ctx context.Context, in *GetLastNLogsRequest, opts ...grpc.CallOption) (*GetLogsResponse, error)
+	GetLogsInTimeRange(ctx context.Context, in *GetLogsInTimeRangeRequest, opts ...grpc.CallOption) (*GetLogsResponse, error)
 }
 
 type loggingServiceClient struct {
@@ -48,11 +52,33 @@ func (c *loggingServiceClient) SendLog(ctx context.Context, in *Log, opts ...grp
 	return out, nil
 }
 
+func (c *loggingServiceClient) GetLastNLogs(ctx context.Context, in *GetLastNLogsRequest, opts ...grpc.CallOption) (*GetLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLogsResponse)
+	err := c.cc.Invoke(ctx, LoggingService_GetLastNLogs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loggingServiceClient) GetLogsInTimeRange(ctx context.Context, in *GetLogsInTimeRangeRequest, opts ...grpc.CallOption) (*GetLogsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLogsResponse)
+	err := c.cc.Invoke(ctx, LoggingService_GetLogsInTimeRange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoggingServiceServer is the server API for LoggingService service.
 // All implementations must embed UnimplementedLoggingServiceServer
 // for forward compatibility.
 type LoggingServiceServer interface {
 	SendLog(context.Context, *Log) (*emptypb.Empty, error)
+	GetLastNLogs(context.Context, *GetLastNLogsRequest) (*GetLogsResponse, error)
+	GetLogsInTimeRange(context.Context, *GetLogsInTimeRangeRequest) (*GetLogsResponse, error)
 	mustEmbedUnimplementedLoggingServiceServer()
 }
 
@@ -65,6 +91,12 @@ type UnimplementedLoggingServiceServer struct{}
 
 func (UnimplementedLoggingServiceServer) SendLog(context.Context, *Log) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendLog not implemented")
+}
+func (UnimplementedLoggingServiceServer) GetLastNLogs(context.Context, *GetLastNLogsRequest) (*GetLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLastNLogs not implemented")
+}
+func (UnimplementedLoggingServiceServer) GetLogsInTimeRange(context.Context, *GetLogsInTimeRangeRequest) (*GetLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLogsInTimeRange not implemented")
 }
 func (UnimplementedLoggingServiceServer) mustEmbedUnimplementedLoggingServiceServer() {}
 func (UnimplementedLoggingServiceServer) testEmbeddedByValue()                        {}
@@ -105,6 +137,42 @@ func _LoggingService_SendLog_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoggingService_GetLastNLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLastNLogsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoggingServiceServer).GetLastNLogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoggingService_GetLastNLogs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoggingServiceServer).GetLastNLogs(ctx, req.(*GetLastNLogsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoggingService_GetLogsInTimeRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLogsInTimeRangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoggingServiceServer).GetLogsInTimeRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoggingService_GetLogsInTimeRange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoggingServiceServer).GetLogsInTimeRange(ctx, req.(*GetLogsInTimeRangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoggingService_ServiceDesc is the grpc.ServiceDesc for LoggingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +183,14 @@ var LoggingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendLog",
 			Handler:    _LoggingService_SendLog_Handler,
+		},
+		{
+			MethodName: "GetLastNLogs",
+			Handler:    _LoggingService_GetLastNLogs_Handler,
+		},
+		{
+			MethodName: "GetLogsInTimeRange",
+			Handler:    _LoggingService_GetLogsInTimeRange_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
