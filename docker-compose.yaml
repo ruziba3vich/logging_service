@@ -18,26 +18,36 @@ services:
       - SESSION_TIME_OUT=30000
       - GRPC_PORT=7770
     ports:
-      - "50051:50051"
+      - "7770:7770"
     depends_on:
-      - kafka
-      - clickhouse
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
     restart: unless-stopped
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.0
     environment:
+      KAFKA_JMX_OPTS: -Djdk.management.agent.disabled=true
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   kafka:
     image: confluentinc/cp-kafka:7.3.0
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "9092:9092"
     environment:
@@ -51,6 +61,12 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.3
@@ -68,11 +84,18 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--host", "localhost", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
