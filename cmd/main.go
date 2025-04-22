@@ -27,7 +27,7 @@ func main() {
 		fx.Provide(
 			config.New,
 			db.ConnectAndMigrate,
-			newLoggingStorage,
+			storage.NewLoggingStorage,
 			service.NewLoggingService,
 			consumer.NewLogConsumer,
 			newGrpcServer,
@@ -43,15 +43,6 @@ func newGrpcServer(loggingService *service.LoggingService) *grpc.Server {
 	server := grpc.NewServer()
 	logging_service.RegisterLoggingServiceServer(server, loggingService)
 	return server
-}
-
-// LoggingStorage provider
-func newLoggingStorage(db *sql.DB) *storage.LoggingStorage {
-	insertQuery := `
-        INSERT INTO logs (message, event_time, level, service)
-        VALUES (?, ?, ?, ?)
-    `
-	return storage.NewLoggingStorage(db, insertQuery)
 }
 
 // Register application lifecycle hooks
