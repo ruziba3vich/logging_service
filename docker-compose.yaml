@@ -27,24 +27,20 @@ services:
     restart: unless-stopped
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
+    image: confluentinc/cp-zookeeper:latest
     environment:
-      KAFKA_JMX_OPTS: -Djdk.management.agent.disabled=true
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-      - zookeeper-log:/var/lib/zookeeper/log
-    restart: unless-stopped
+    ports:
+      - "2181:2181"
     healthcheck:
-      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
 
   kafka:
-    image: confluentinc/cp-kafka:7.3.0
+    image: confluentinc/cp-kafka:latest
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -57,55 +53,28 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 10s
 
   clickhouse:
-    image: clickhouse/clickhouse-server:23.3
+    image: clickhouse/clickhouse-server:latest
     ports:
       - "8123:8123"
       - "9000:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
     environment:
       CLICKHOUSE_USER: default
       CLICKHOUSE_PASSWORD: password
       CLICKHOUSE_DB: logs
-    volumes:
-      - clickhouse-data:/var/lib/clickhouse
-    restart: unless-stopped
-    ulimits:
-      nofile:
-        soft: 262144
-        hard: 262144
     healthcheck:
-      test: ["CMD", "clickhouse-client", "--host", "localhost", "--query", "SELECT 1"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    depends_on:
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-    restart: unless-stopped
 
 volumes:
-  zookeeper-data:
-  zookeeper-log:
-  kafka-data:
   clickhouse-data:
