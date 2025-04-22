@@ -10,13 +10,13 @@ import (
 	"github.com/ruziba3vich/logging_service/pkg/config"
 )
 
-func ConnectAndMigrate(cfg config.DbConfig) (*sql.DB, error) {
+func ConnectAndMigrate(cfg *config.Config) (*sql.DB, error) {
 	dsn := fmt.Sprintf("clickhouse://%s:%s@%s:%s/%s",
-		cfg.User,
-		cfg.Password,
-		cfg.Host,
-		cfg.Port,
-		cfg.Database,
+		cfg.DbCfg.User,
+		cfg.DbCfg.Password,
+		cfg.DbCfg.Host,
+		cfg.DbCfg.Port,
+		cfg.DbCfg.Database,
 	)
 
 	db, err := sql.Open("clickhouse", dsn)
