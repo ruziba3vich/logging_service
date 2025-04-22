@@ -38,3 +38,36 @@ func (s *LoggingService) SendLog(ctx context.Context, l *logging_service.Log) (*
 
 	return &emptypb.Empty{}, nil
 }
+
+func (s *LoggingService) GetLastNLogs(ctx context.Context, req *logging_service.GetLastNLogsRequest) (*logging_service.GetLogsResponse, error) {
+	response, err := s.loggingStorage.GetLastNLogs(ctx, req)
+	if err != nil {
+		errLog := &logging_service.Log{
+			Message:   "Failed to store log: " + err.Error(),
+			Level:     "ERROR",
+			EventTime: timestamppb.Now(),
+			Service:   "LoggingService",
+		}
+
+		_ = s.loggingStorage.StoreLog(ctx, errLog)
+		return nil, err
+	}
+
+	return response, nil
+}
+func (s *LoggingService) GetLogsInTimeRange(ctx context.Context, req *logging_service.GetLogsInTimeRangeRequest) (*logging_service.GetLogsResponse, error) {
+	response, err := s.loggingStorage.GetLogsInTimeRange(ctx, req)
+	if err != nil {
+		errLog := &logging_service.Log{
+			Message:   "Failed to store log: " + err.Error(),
+			Level:     "ERROR",
+			EventTime: timestamppb.Now(),
+			Service:   "LoggingService",
+		}
+
+		_ = s.loggingStorage.StoreLog(ctx, errLog)
+		return nil, err
+	}
+
+	return response, nil
+}
