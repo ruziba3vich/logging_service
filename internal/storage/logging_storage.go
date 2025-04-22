@@ -33,7 +33,7 @@ func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) e
 }
 
 // GetLastNLogs retrieves the most recent N logs with optional filtering
-func (s *LoggingStorage) GetLastNLogs(ctx context.Context, req *logging_service.GetLastNLogsRequest) ([]*logging_service.Log, error) {
+func (s *LoggingStorage) GetLastNLogs(ctx context.Context, req *logging_service.GetLastNLogsRequest) (*logging_service.GetLogsResponse, error) {
 	var logs []models.Log
 
 	query := s.db.WithContext(ctx).Model(&models.Log{})
@@ -54,7 +54,7 @@ func (s *LoggingStorage) GetLastNLogs(ctx context.Context, req *logging_service.
 }
 
 // GetLogsInTimeRange retrieves logs within a specific time range with optional filtering
-func (s *LoggingStorage) GetLogsInTimeRange(ctx context.Context, req *logging_service.GetLogsInTimeRangeRequest) ([]*logging_service.Log, error) {
+func (s *LoggingStorage) GetLogsInTimeRange(ctx context.Context, req *logging_service.GetLogsInTimeRangeRequest) (*logging_service.GetLogsResponse, error) {
 	var logs []models.Log
 
 	query := s.db.WithContext(ctx).Model(&models.Log{})
@@ -79,7 +79,7 @@ func (s *LoggingStorage) GetLogsInTimeRange(ctx context.Context, req *logging_se
 }
 
 // Helper function to convert from model logs to protobuf logs
-func convertModelLogsToPbLogs(modelLogs []models.Log) []*logging_service.Log {
+func convertModelLogsToPbLogs(modelLogs []models.Log) *logging_service.GetLogsResponse {
 	pbLogs := make([]*logging_service.Log, len(modelLogs))
 
 	for i, log := range modelLogs {
@@ -91,5 +91,7 @@ func convertModelLogsToPbLogs(modelLogs []models.Log) []*logging_service.Log {
 		}
 	}
 
-	return pbLogs
+	return &logging_service.GetLogsResponse{
+		Logs: pbLogs,
+	}
 }
