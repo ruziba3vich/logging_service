@@ -39,7 +39,7 @@ jobs:
             echo "Running docker compose down..."
             docker compose down
             echo "Running docker compose up -d --build..."
-            docker compose up -d --build
+            COMPOSE_BAKE=true docker compose up -d --build
             echo "Deployment completed successfully!"
           EOF
 
