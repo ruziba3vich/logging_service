@@ -77,7 +77,7 @@ services:
     image: clickhouse/clickhouse-server:latest
     ports:
       - "8123:8123"
-      - "9000:9000"
+      - "9001:9000"
     volumes:
       - clickhouse-data:/var/lib/clickhouse
     environment:
