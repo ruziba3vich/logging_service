@@ -42,9 +42,3 @@ jobs:
             COMPOSE_BAKE=true docker compose up -d --build
             echo "Deployment completed successfully!"
           EOF
-
-      - name: Verify service health
-        run: |
-          echo "Waiting for services to stabilize..."
-          sleep 15
-          ssh -T -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "docker compose -f /home/${{ secrets.SSH_USER }}/online_compiler/logging_service/docker-compose.yml ps"
