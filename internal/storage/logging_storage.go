@@ -21,7 +21,7 @@ func NewLoggingStorage(db *gorm.DB, insertQuery string) *LoggingStorage {
 func (s *LoggingStorage) StoreLog(ctx context.Context, l *logging_service.Log) error {
 	log := models.Log{
 		Message:   l.Message,
-		EventTime: l.EventTime.AsTime().Format("2006-01-02 15:04:05"), // format for ClickHouse
+		EventTime: l.EventTime.AsTime(),
 		Level:     l.Level,
 		Service:   l.Service,
 	}
